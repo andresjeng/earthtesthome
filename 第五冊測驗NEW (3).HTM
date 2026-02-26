@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地球科學測驗</title>
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#0f1535;
+  color:white;
+  min-height:100vh;
+}
+
+.page{display:none;padding:20px;}
+.page.active{display:block;}
+
+h2{margin-top:0;}
+
+input{
+  width:100%;
+  padding:16px;
+  font-size:20px;
+  margin:12px 0;
+  border-radius:8px;
+  border:none;
+  box-sizing:border-box;
+}
+
+button{
+  width:100%;
+  padding:18px;
+  font-size:22px;
+  margin-top:15px;
+  border:none;
+  border-radius:10px;
+  background:#4CAF50;
+  color:white;
+  cursor:pointer;
+}
+button:active{background:#2e7d32;}
+
+/* 進度列 */
+.progress-bar-wrap{
+  background:#1e2a60;
+  border-radius:10px;
+  height:14px;
+  margin-bottom:18px;
+  overflow:hidden;
+}
+.progress-bar-fill{
+  height:100%;
+  background:#4CAF50;
+  transition:width 0.4s;
+  border-radius:10px;
+}
+.progress-text{
+  font-size:16px;
+  color:#aab;
+  margin-bottom:8px;
+}
+
+/* 題目區 */
+.question-card{
+  background:#1a2355;
+  border-radius:14px;
+  padding:24px;
+  margin-bottom:16px;
+}
+.question-stem{
+  font-size:20px;
+  margin-bottom:16px;
+  line-height:1.5;
+}
+
+img{
+  max-width:100%;
+  margin:10px 0;
+  border-radius:8px;
+}
+
+/* 選項按鈕 */
+.optBtn{
+  display:block;
+  width:100%;
+  padding:16px;
+  margin:10px 0;
+  border-radius:8px;
+  border:2px solid transparent;
+  font-size:18px;
+  background:#0f1535;
+  color:white;
+  cursor:pointer;
+  text-align:left;
+  transition: background 0.2s, border-color 0.2s;
+}
+.optBtn:hover{
+  background:#2a3870;
+  border-color:#4CAF50;
+}
+.optBtn.selected{
+  background:#1e5c22;
+  border-color:#4CAF50;
+}
+
+/* 確定按鈕 */
+#confirmBtn{
+  background:#2196F3;
+  margin-top:10px;
+}
+#confirmBtn:disabled{
+  background:#334;
+  color:#778;
+  cursor:not-allowed;
+}
+#confirmBtn:active:not(:disabled){background:#1565C0;}
+
+/* 證書 */
+#pageCertificate{
+  padding:0;
+  position:relative;
+  min-height:100vh;
+  overflow:hidden;
+}
+#fireworksCanvas{
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;
+  z-index:0;
+}
+.certificate{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:30px;
+  box-sizing:border-box;
+}
+.certBox{
+  width:100%;
+  max-width:700px;
+  padding:50px 30px 40px;
+  text-align:center;
+  border-radius:28px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  color:#000;
+  position:relative;
+  overflow:hidden;
+  animation: certPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+@keyframes certPop{
+  0%{transform:scale(0.5);opacity:0;}
+  100%{transform:scale(1);opacity:1;}
+}
+/* 浮動裝飾圖形 */
+.floatShape{
+  position:absolute;
+  font-size:28px;
+  animation:floatAnim linear infinite;
+  pointer-events:none;
+  opacity:0.7;
+  user-select:none;
+}
+@keyframes floatAnim{
+  0%  {transform:translateY(0)   rotate(0deg)   scale(1);}
+  25% {transform:translateY(-18px) rotate(10deg) scale(1.1);}
+  50% {transform:translateY(-8px) rotate(-8deg) scale(0.95);}
+  75% {transform:translateY(-22px) rotate(5deg) scale(1.05);}
+  100%{transform:translateY(0)   rotate(0deg)   scale(1);}
+}
+.certDivider{
+  width:80%;
+  height:3px;
+  border-radius:4px;
+  margin:18px auto;
+  background:linear-gradient(90deg,transparent,rgba(0,0,0,0.3),transparent);
+}
+.certTitle{
+  font-size:36px;
+  font-weight:bold;
+  letter-spacing:4px;
+  margin-bottom:8px;
+  text-shadow:1px 2px 4px rgba(255,255,255,0.5);
+}
+.certSubTitle{font-size:18px;opacity:0.6;margin-bottom:20px;}
+.certRow{font-size:26px;margin:10px 0;}
+.certScore{
+  font-size:72px;
+  font-weight:900;
+  margin:20px 0 8px;
+  background:linear-gradient(135deg,#b8002e,#ff6b6b,#ff9f43);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+  animation:scorePulse 2s ease-in-out infinite;
+}
+@keyframes scorePulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.04);}
+}
+.certStars{font-size:32px;margin:4px 0 16px;letter-spacing:4px;}
+.certDate{font-size:20px;margin-top:14px;opacity:0.7;}
+.certSchool{font-size:22px;margin-top:10px;font-weight:bold;}
+.certMessage{
+  font-size:22px;
+  margin-top:16px;
+  font-style:italic;
+  padding:10px 20px;
+  border-radius:30px;
+  display:inline-block;
+  background:rgba(0,0,0,0.08);
+}
+</style>
+</head>
+<body>
+
+<!-- 第一頁 -->
+<div id="pageStart" class="page active">
+  <h2>地球科學測驗</h2>
+  <input id="classInput" placeholder="請輸入班級（例如 901）">
+  <input id="seatInput" placeholder="請輸入座號（例如 12）">
+  <input id="nameInput" placeholder="請輸入姓名">
+  <button onclick="startQuiz()">開始測驗</button>
+</div>
+
+<!-- 第二頁 -->
+<div id="pageQuiz" class="page">
+  <div class="progress-text" id="progressText"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div id="quizArea"></div>
+  <button id="confirmBtn" onclick="confirmAnswer()" disabled>確定，下一題 ➜</button>
+</div>
+
+<!-- 第三頁 證書 -->
+<div id="pageCertificate" class="page">
+  <canvas id="fireworksCanvas"></canvas>
+  <div class="certificate">
+    <div id="certBox" class="certBox">
+      <div class="certTitle">🌏 地球科學測驗</div>
+      <div class="certSubTitle">成績證明書</div>
+      <div class="certDivider"></div>
+      <div class="certRow">班級：<span id="certClass"></span></div>
+      <div class="certRow">姓名：<span id="certName"></span></div>
+      <div class="certRow">座號：<span id="certSeat"></span></div>
+      <div class="certDivider"></div>
+      <div class="certScore"><span id="certScore"></span></div>
+      <div class="certStars" id="certStars"></div>
+      <div class="certMessage" id="certMessage"></div>
+      <div class="certDivider"></div>
+      <div class="certDate">測驗日期：<span id="certDate"></span></div>
+      <div class="certSchool">🏫 明志國中</div>
+    </div>
+  </div>
+  <!-- 按鈕區（在 certificate div 外，頁面最底） -->
+  <div style="display:flex;gap:14px;padding:0 20px 40px;box-sizing:border-box;max-width:760px;margin:0 auto;">
+    <button onclick="goReview()" style="flex:1;background:#4d96ff;font-size:18px;padding:18px;border-radius:14px;border:none;color:white;cursor:pointer;">📋 查看答題回顧</button>
+    <button onclick="goEnd()" style="flex:1;background:#888;font-size:18px;padding:18px;border-radius:14px;border:none;color:white;cursor:pointer;">✅ 結束</button>
+  </div>
+</div>
+
+<!-- 第四頁 答題回顧 -->
+<div id="pageReview" class="page">
+  <div style="position:sticky;top:0;z-index:10;background:#0f1535;padding:14px 20px 10px;border-bottom:2px solid #1e2a60;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <span style="font-size:20px;font-weight:bold;">📋 答題回顧</span>
+        <span id="reviewSummary" style="font-size:15px;color:#aab;margin-left:12px;"></span>
+      </div>
+      <button onclick="goEnd()" style="width:auto;padding:10px 22px;font-size:16px;background:#888;border-radius:10px;border:none;color:white;cursor:pointer;">✅ 結束</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;" id="filterBtns">
+      <button id="fAll"     onclick="filterReview('all')"     style="flex:1;min-width:80px;padding:8px;font-size:15px;border-radius:8px;border:2px solid #4d96ff;background:#4d96ff;color:white;cursor:pointer;">全部</button>
+      <button id="fWrong"   onclick="filterReview('wrong')"   style="flex:1;min-width:80px;padding:8px;font-size:15px;border-radius:8px;border:2px solid #ff6b6b;background:transparent;color:#ff6b6b;cursor:pointer;">❌ 答錯</button>
+      <button id="fCorrect" onclick="filterReview('correct')" style="flex:1;min-width:80px;padding:8px;font-size:15px;border-radius:8px;border:2px solid #6bcb77;background:transparent;color:#6bcb77;cursor:pointer;">✅ 答對</button>
+    </div>
+  </div>
+  <div id="reviewArea" style="padding:16px 20px 40px;"></div>
+</div>
+
+<script>
+var TOTAL_QUESTIONS = 50;
+var POINT = 2;
+
+var user = {};
+var selectedQuestions = [];
+var currentIndex = 0;
+var currentAnswer = null;
+var score = 0;
+
+/* ===== 題庫（100 題） ===== */
+var questionBank = [
+  {id:1, stem:"全球總水量中，約有多少百分比的水儲存於海洋中？", choices:{A:"51",B:"70",C:"76",D:"97"}, answer:"D"},
+  {id:2, stem:"海水中含有豐富鹽類，使其嚐起來會鹹的主要成分是哪一種鹽類？", choices:{A:"氯化鈉",B:"氯化鎂",C:"氯化鈣",D:"氯化銀"}, answer:"A"},
+  {id:3, stem:"關於冰川的敘述，下列何者「錯誤」？", choices:{A:"存在於高山或高緯度",B:"移動速度比水快，對岩石有強的侵蝕力",C:"移動力量主要來自重力",D:"融水可補充河流與地下水"}, answer:"B"},
+  {id:4, stem:"一般而言，在臺灣哪兩個季節的地下水位面較高？", choices:{A:"春、夏",B:"夏、秋",C:"秋、冬",D:"春、冬"}, answer:"B"},
+  {id:5, stem:"下列何者不屬「地下水」的特色？", choices:{A:"由雨水補充",B:"不會受到汙染",C:"地下水面儲存在透水岩層當中",D:"地下水可以與河水互通"}, answer:"D"},
+  {id:6, stem:"有關超抽地下水的敘述，下列何者「錯誤」？", choices:{A:"地下水一旦鹼化，很難恢復",B:"地下水補充速率很慢，不宜超抽",C:"颱風來襲時，易引起沿海地區海水倒灌",D:"地層下陷不會因此惡化"}, answer:"D"},
+  {id:7, stem:"關於淡水的敘述，下列何者「錯誤」？", choices:{A:"河流淡水量是地球淡水含量比例最大的",B:"南極冰約占全球冰量 90%",C:"地下水主要是雨水滲入地下儲存形成",D:"岩層孔隙中充滿地下水，可協助支撐岩層"}, answer:"A"},
+  {id:8, stem:"(附圖題) 以下對於圖中地下水在砂岩、頁岩的流動性，何者正確？", choices:{A:"砂岩-不透水層，頁岩-不透水層",B:"砂岩-不透水層，頁岩-透水層",C:"砂岩-透水層，頁岩-不透水層",D:"砂岩-透水層，頁岩-透水層"}, answer:"C",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXecT6r82o69ahq4OdgWmXQ7ECrqWnU10JjeDR6dRizH19SR49IpvhozsKu2RIVlDIlCc-_Q-q2p4hd1KFNjrjhEcQ901dCxX4cAlsZ8QULNw27Fzx17i1oQHtftWeLaxTWoeiSA8WSd4ZCiASCxzyM?key=asZ8XrJ5frr2iApYJKJW1w"},
+  {id:9, stem:"(呈上題)有關於圖中的自流井，以下敘述何者正確？", choices:{A:"自流井的井口低於岩層的地下水面",B:"自流井的井口等於岩層的地下水面",C:"自流井的井口高於岩層的地下水面"}, answer:"A",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXecT6r82o69ahq4OdgWmXQ7ECrqWnU10JjeDR6dRizH19SR49IpvhozsKu2RIVlDIlCc-_Q-q2p4hd1KFNjrjhEcQ901dCxX4cAlsZ8QULNw27Fzx17i1oQHtftWeLaxTWoeiSA8WSd4ZCiASCxzyM?key=asZ8XrJ5frr2iApYJKJW1w"},
+  {id:10, stem:"目前在台灣，何處因為抽取地下水過多造成嚴重的地層下陷情況？", choices:{A:"嘉義丘陵",B:"屏東海邊",C:"阿里山日日月潭",D:"花蓮吉安鄉"}, answer:"B"},
+
+  {id:11, stem:"當岩石暴露在空氣和水中逐漸破碎疏鬆，稱為什麼作用？", choices:{A:"風化",B:"侵蝕",C:"搬運",D:"沉積"}, answer:"A"},
+  {id:12, stem:"下列何者屬於地貌改變的「內營力」？", choices:{A:"流水",B:"風",C:"斷層錯動",D:"海浪"}, answer:"C"},
+  {id:13, stem:"岩石中的鐵質氧化成褐色土壤，這屬於：", choices:{A:"物理風化",B:"侵蝕作用",C:"化學風化",D:"沉積作用"}, answer:"C"},
+  {id:14, stem:"下列何者可能造成地表上的搬運作用？", choices:{A:"流水",B:"冰川",C:"風",D:"以上皆是"}, answer:"D"},
+  {id:15, stem:"關於河流的敘述，何者「錯誤」？", choices:{A:"河流下游沉積物較小",B:"流水對風化碎屑物有搬運作用",C:"河流中、下游較易出現鵝卵石",D:"河流中游沒有沉積作用"}, answer:"D"},
+  {id:16, stem:"小明參加溯溪活動，從下游往上游探險，看見的石頭外觀應為何？", choices:{A:"愈往上游愈圓滑",B:"愈往上游愈細小",C:"愈往上游愈有稜角",D:"顏色愈深"}, answer:"C"},
+  {id:17, stem:"河道彎曲的哪一處因流速較快，侵蝕作用較強？", choices:{A:"內側",B:"外側"}, answer:"B"},
+  {id:18, stem:"野柳「豆腐岩」的形成主要歸功於哪兩種作用？", choices:{A:"風化與侵蝕",B:"風化與沉積",C:"侵蝕與沉積",D:"搬運與沉積"}, answer:"A"},
+  {id:19, stem:"造成海岸線向海延伸的因素「不包括」下列哪一項？", choices:{A:"帶來泥沙量增加",B:"海平面上升",C:"陸塊隆起",D:"沉積物被帶走的少"}, answer:"B"},
+  {id:20, stem:"Ｖ形谷通常是由何種力量侵蝕而成？", choices:{A:"冰川",B:"風",C:"河流",D:"海浪"}, answer:"C"},
+
+  {id:21, stem:"區分沉積岩、火成岩及變質岩的三大依據是：", choices:{A:"形成過程",B:"化學成分",C:"顆粒大小",D:"礦物種類"}, answer:"A"},
+  {id:22, stem:"下列何者是由岩漿冷卻而成？", choices:{A:"石灰岩",B:"大理岩",C:"砂岩",D:"玄武岩"}, answer:"D"},
+  {id:23, stem:"岩漿在地底深處「緩慢冷卻」形成：", choices:{A:"安山岩",B:"玄武岩",C:"花岡岩",D:"大理岩"}, answer:"C"},
+  {id:24, stem:"不同沉積岩將組成的顆粒由大到小排列，何者正確？", choices:{A:"礫岩>頁岩>砂岩",B:"礫岩>砂岩>頁岩",C:"砂岩>礫岩>頁岩",D:"砂岩>頁岩>礫岩"}, answer:"B"},
+  {id:25, stem:"中央山脈受板塊擠壓形成的變質帶，常見何種岩石？", choices:{A:"玄武岩",B:"石灰岩",C:"板岩",D:"砂岩"}, answer:"C"},
+  {id:26, stem:"臺灣東部出產的大理岩屬於：", choices:{A:"變質岩",B:"沉積岩",C:"火成岩",D:"礦物"}, answer:"A"},
+  {id:27, stem:"由珊瑚、貝類遺骸堆積形成的岩石是：", choices:{A:"花岡岩",B:"石灰岩",C:"大理岩",D:"鹽岩"}, answer:"B"},
+  {id:28, stem:"關於岩石的敘述，何者「錯誤」？", choices:{A:"石灰岩是水泥的原料之一",B:"原住民的石板屋以板岩為主",C:"火成岩中礦物顆粒以花岡岩顆粒最小",D:"安山岩是火山噴發形成的岩石"}, answer:"C"},
+  {id:29, stem:"下列何者「不是」組成花岡岩的主要礦物？", choices:{A:"滑石",B:"石英",C:"長石",D:"雲母"}, answer:"A"},
+  {id:30, stem:"關於石英和方解石的比較，何者正確？", choices:{A:"兩者都是深色的礦物",B:"方解石遇稀鹽酸會冒氣泡",C:"互磨時石英會受損",D:"結晶良好的石英就是方解石"}, answer:"B"},
+
+  {id:31, stem:"科學家藉由下列何種方式，探測地球內部的構造？", choices:{A:"人造衛星",B:"聲納",C:"地震波",D:"鑽井"}, answer:"C"},
+  {id:32, stem:"有關地殼、地函、地核的比較，何者正確？", choices:{A:"地核主要由鐵、鎳組成",B:"密度最大是地殼",C:"地殼厚度最厚",D:"軟流圈在核心"}, answer:"A"},
+  {id:33, stem:"關於地殼厚度的敘述，何者正確？", choices:{A:"大陸地殼平均厚度大於海洋地殼",B:"海洋地殼密度較小",C:"兩者厚度相等",D:"只有大陸地殼"}, answer:"A"},
+  {id:34, stem:"岩石圈的定義包含了哪些部分？", choices:{A:"僅地殼",B:"地殼與一部分上部地函",C:"僅軟流圈",D:"整個地函"}, answer:"B"},
+  {id:35, stem:"哪種現象「無法」完全由板塊間的互動解釋？", choices:{A:"褶皺形成",B:"火山分布",C:"海洋與大陸的分界",D:"海溝的形成"}, answer:"C"},
+  {id:36, stem:"喜馬拉雅山是由哪兩大板塊擠壓形成的？", choices:{A:"菲律賓海與歐亞",B:"歐亞與印澳",C:"太平洋與歐亞",D:"南美與非洲"}, answer:"B"},
+  {id:37, stem:"海洋地殼通常不超過 2 億年，主因是：", choices:{A:"地殼會蒸發",B:"變為大陸",C:"隱沒入地函",D:"地殼岩石被侵蝕"}, answer:"C"},
+  {id:38, stem:"倆倆互相推擠的板塊邊界，可能形成下列何者？", choices:{A:"裂谷",B:"海溝",C:"中洋脊",D:"河流"}, answer:"B"},
+  {id:39, stem:"板塊在中洋脊處如何移動？", choices:{A:"互相推擠",B:"彼此分離",C:"平行滑動",D:"靜止不動"}, answer:"B"},
+  {id:40, stem:"中洋脊的板塊邊界類型屬於：", choices:{A:"聚合性",B:"張裂性",C:"錯動性",D:"擠壓型"}, answer:"B"},
+
+  {id:41, stem:"根據國中地質原理(未有地層翻轉現象)，如何判斷兩個沉積岩層的年紀?", choices:{A:"顏色越白岩層越老",B:"越下方的岩層越老",C:"組成顆粒越粗岩層越老",D:"有化石者岩層年紀愈老"}, answer:"B"},
+  {id:42, stem:"(附圖題) 下圖山頭地層呈現波浪狀彎曲，其主要成因為？", choices:{A:"受力擠壓產生褶皺",B:"斷層移動",C:"火山噴發",D:"風化程度不同"}, answer:"A",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXfL47CkGDa9ea_nyjfyHHPn4MHIS57qAqzcMjIR1wbdqniNDgLHDKbW-TFrBQEhQXsbU4-RAfK59QOvmxq-rgtkqCin-K4A0Tlap7xHogweVffxxl2thkpmW5FYl7WywPoj9f-k7gaSF2lC8jGZdxat?key=asZ8XrJ5frr2iApYJKJW1w"},
+  {id:43, stem:"地質圖當中，若岩脈切過砂岩層，則形成的先後順序為：", choices:{A:"岩脈較早",B:"砂岩較早",C:"同時形成",D:"無法判斷"}, answer:"B"},
+  {id:44, stem:"在山頂上發現珊瑚化石，代表該地層：", choices:{A:"曾位於溫暖淺海",B:"氣候寒冷",C:"是沙漠",D:"岩漿噴發"}, answer:"A"},
+  {id:45, stem:"下列何種化石的出現，代表地層屬於「古生代」？", choices:{A:"長毛象",B:"恐龍",C:"三葉蟲",D:"菊石"}, answer:"C"},
+  {id:46, stem:"暴龍與三觭龍化石出現在同一地層，代表它們：", choices:{A:"有血緣關係，是兄弟",B:"生存年代相近",C:"食物相同",D:"體型相同"}, answer:"B"},
+  {id:47, stem:"從演化角度，哪種生物「不應」與恐龍出現在同一部電影中？", choices:{A:"暴龍",B:"長毛象",C:"菊石",D:"蕨類"}, answer:"B"},
+  {id:48, stem:"屏東社頂公園發現珊瑚礁遺跡，最合理的解釋是：", choices:{A:"珊瑚被海浪沖上岸",B:"珊瑚是陸生生物",C:"岩層上升出露",D:"海平面上升"}, answer:"C"},
+  {id:49, stem:"地層受力產生斷裂並移動，稱為：", choices:{A:"褶皺",B:"斷層",C:"峽谷",D:"斷崖"}, answer:"B"},
+  {id:50, stem:"(附圖題) 此斷層稱為：", choices:{A:"正斷層",B:"逆斷層"}, answer:"B",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXd2UvAaWUWNwi_1tljpkicx1pA60diQjOj0q-hRnGzWIvl5zgv1GMZPVh_nSOdLE-qiFzbb-pAgKRfdDu3PP3OluFmHvAknHqHIb83o4dRxlG_5GPyySsEiqRbux7IQYB_wMLGw0bcg8dqokNyVu4In?key=asZ8XrJ5frr2iApYJKJW1w"},
+
+  {id:51, stem:"關於地震災害的敘述，何者「錯誤」？", choices:{A:"應加強耐震設計",B:"目前無法精確預測時間地點",C:"震度等級是採芮氏地震規模",D:"防震演習可免驚慌"}, answer:"C"},
+  {id:52, stem:"震源正上方地表位置稱為？", choices:{A:"震央",B:"震度",C:"斷層線",D:"震源深度"}, answer:"A"},
+  {id:53, stem:"規模 7.3 與 規模4.2 相比，何者釋放能量較多？", choices:{A:"7.3",B:"4.2",C:"一樣多",D:"視震度而定"}, answer:"A"},
+  {id:54, stem:"在實驗室測試建築物耐震度時，測試底座搖晃程度最接近下列何者意義？", choices:{A:"震央位置",B:"震源深度",C:"地震震度",D:"地震規模"}, answer:"C"},
+  {id:55, stem:"臺灣地震頻繁的原因是位於哪兩個板塊交界處？", choices:{A:"歐亞與菲律賓海",B:"歐亞與太平洋",C:"菲律賓海與太平洋",D:"歐亞與印澳"}, answer:"A"},
+  {id:56, stem:"臺灣東部的海岸山脈屬於哪一個板塊？", choices:{A:"歐亞板塊",B:"菲律賓海板塊",C:"太平洋板塊",D:"印澳板塊"}, answer:"B"},
+  {id:57, stem:"依據板塊構造學說，臺灣附近「沒有」下列哪種地質景觀？", choices:{A:"中洋脊",B:"褶皺山脈",C:"斷層",D:"火山"}, answer:"A"},
+  {id:58, stem:"同一次地震，各地的「規模」數值是否相同？", choices:{A:"皆相同",B:"愈遠規模愈小",C:"愈遠規模愈大",D:"視震度而定"}, answer:"A"},
+  {id:59, stem:"規模 6.2 的地震，全台感受不同，主因是：", choices:{A:"能量不同",B:"離震央距離不同",C:"發震時間不同",D:"地震規模改變"}, answer:"B"},
+  {id:60, stem:"臺灣哪一條山脈是由板塊擠壓碰撞劇烈抬升形成的？", choices:{A:"海岸山脈",B:"中央山脈",C:"雪山山脈",D:"以上皆是"}, answer:"D"},
+
+  {id:61, stem:"「1 光年」是指什麼單位？", choices:{A:"速度",B:"時間",C:"距離",D:"亮度"}, answer:"C"},
+  {id:62, stem:"「1 天文單位」是指哪兩者間的平均距離？", choices:{A:"太陽與地球",B:"地球與月球",C:"太陽與月球",D:"地球與火星"}, answer:"A"},
+  {id:63, stem:"天狼星距離地球 8.7 光年，代表我們看見的是其：", choices:{A:"8.7 年前的景象",B:"現狀",C:"未來景象",D:"太陽系內景象"}, answer:"A"},
+  {id:64, stem:"有關恆星的敘述何者正確？", choices:{A:"每一顆都會自行發光",B:"每顆都繞太陽轉",C:"到地球距離都一樣",D:"在銀河系外"}, answer:"A"},
+  {id:65, stem:"與其他恆星相比，在地球的我們看太陽，太陽看起來最亮，主因是：", choices:{A:"距離最近",B:"發光強度最高",C:"太陽其實是行星",D:"體積最大"}, answer:"A"},
+  {id:66, stem:"銀河系的直徑多少？", choices:{A:"10萬光年",B:"2萬光年",C:"10萬天文單位",D:"2天文單位"}, answer:"A"},
+  {id:67, stem:"類地行星的主要成分是：", choices:{A:"岩石、金屬",B:"氣體、冰",C:"氫、氦",D:"水蒸氣"}, answer:"A"},
+  {id:68, stem:"木星具有明顯的環且體積巨大，它屬於：", choices:{A:"類地行星",B:"類木行星",C:"恆星",D:"衛星"}, answer:"B"},
+  {id:69, stem:"太陽系行星中，距離太陽由近到遠，地球排在第幾位？", choices:{A:"1",B:"2",C:"3",D:"4"}, answer:"C"},
+  {id:70, stem:"星系、恆星、行星、衛星由大到小順序為何？", choices:{A:"星系>恆星>行星>衛星",B:"衛星>行星>恆星>星系",C:"恆星>行星>衛星",D:"宇宙>星系>恆星"}, answer:"A"},
+
+  {id:71, stem:"從北極上空往下看，地球自轉的方向為何？", choices:{A:"順時鐘",B:"逆時鐘",C:"由東向西",D:"固定"}, answer:"B"},
+  {id:72, stem:"臺灣觀測星星「東升西落」的主因是：", choices:{A:"地球自轉",B:"地球公轉",C:"月球自轉",D:"恆星移動"}, answer:"A"},
+  {id:73, stem:"造成四季變化的主要原因是地球自轉軸傾斜幾度且繞日公轉？", choices:{A:"15",B:"23.5",C:"45",D:"66.5"}, answer:"B"},
+  {id:74, stem:"北半球夏季晝長夜短的主要原因為：", choices:{A:"離太陽近",B:"太陽光強",C:"地球自轉軸傾斜",D:"月球公轉"}, answer:"C"},
+  {id:75, stem:"冬至到春分期間，北半球晝夜長短變化為何？", choices:{A:"晝漸短",B:"晝漸長、夜漸短",C:"晝漸短、夜漸長",D:"夜漸長"}, answer:"B"},
+  {id:76, stem:"當臺灣是夏季時，南半球的季節是：", choices:{A:"春季",B:"夏季",C:"秋季",D:"冬季"}, answer:"D"},
+  {id:77, stem:"當太陽直射北回歸線時，稱為？", choices:{A:"夏至",B:"冬至",C:"春分",D:"秋分"}, answer:"A"},
+  {id:78, stem:"春分與秋分當天，太陽從哪一個方位升起？", choices:{A:"正東",B:"東北",C:"東南",D:"西方"}, answer:"A"},
+  {id:79, stem:"一年之中，台灣正午太陽高度最高的一天是：", choices:{A:"春分",B:"夏至",C:"秋分",D:"冬至"}, answer:"B"},
+  {id:80, stem:"嘉義（北緯 23.5 度）在夏至正午時，太陽仰角為：", choices:{A:"0",B:"47",C:"66.5",D:"90"}, answer:"D"},
+
+  {id:81, stem:"產生月球盈虧現象的主要原因是：", choices:{A:"相對位置改變",B:"距離改變",C:"只有部分被照射",D:"地球遮住光"}, answer:"A"},
+  {id:82, stem:"(附圖題) 下圖中，太陽在圖片的哪一個方位？", choices:{A:"右側",B:"左側",C:"上方",D:"下方"}, answer:"A",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXfrHahBgndhECqZsTGjolyvnNoNXSTxCqN8MG4nJMyMsflFloqDCdAfyqEBXFw833DdPunoisbOKPeoXUDVg4-YhCN0XPJLlL60rb4MA2Rd4Sw_OkOhWfjtCLtAseH7OCZB3WKXc6yCJQ0lsX2grJu2?key=asZ8XrJ5frr2iApYJKJW1w"},
+  {id:83, stem:"日食發生在農曆的什麼時候？", choices:{A:"朔（初一）",B:"望（十五）",C:"上弦",D:"下弦"}, answer:"A"},
+  {id:84, stem:"月食現象主要是因為月球進入了什麼區域？", choices:{A:"太陽影子",B:"地球影子",C:"月球影子",D:"銀河中心"}, answer:"B"},
+  {id:85, stem:"影響地球潮汐起伏的主要引力來源是：", choices:{A:"太陽",B:"月球",C:"地球",D:"金星"}, answer:"B"},
+  {id:86, stem:"相鄰兩次大潮之間的時間間隔約為：", choices:{A:"12 小時",B:"12 小時 25 分",C:"24 小時",D:"15 天"}, answer:"B"},
+  {id:87, stem:"日環食發生時，月球與地球的距離通常：", choices:{A:"較近",B:"較遠",C:"不變",D:"為零"}, answer:"B"},
+  {id:88, stem:"下弦月在農曆：", choices:{A:"初一",B:"初七",C:"十五",D:"二十二"}, answer:"D"},
+  {id:89, stem:"月球運行至太陽與地球之間，可能發生：", choices:{A:"日食",B:"月食",C:"流星雨",D:"彗星"}, answer:"A"},
+  {id:90, stem:"(附圖題) 發生日全食時，月球在圖中的位置應為？", choices:{A:"新月",B:"滿月",C:"上弦月",D:"下弦月"}, answer:"A",
+    img:"https://lh7-rt.googleusercontent.com/docsz/AD_4nXfrHahBgndhECqZsTGjolyvnNoNXSTxCqN8MG4nJMyMsflFloqDCdAfyqEBXFw833DdPunoisbOKPeoXUDVg4-YhCN0XPJLlL60rb4MA2Rd4Sw_OkOhWfjtCLtAseH7OCZB3WKXc6yCJQ0lsX2grJu2?key=asZ8XrJ5frr2iApYJKJW1w"},
+
+  {id:91, stem:"海岸線平衡時，若河流帶來的沙量減少，海岸線會：", choices:{A:"向海延伸",B:"向陸地退縮",C:"不變",D:"消失"}, answer:"B"},
+  {id:92, stem:"臺灣位於哪兩個板塊的交界帶？", choices:{A:"歐亞與菲律賓海",B:"歐亞與太平洋",C:"菲律賓海與太平洋",D:"印澳與歐亞"}, answer:"A"},
+  {id:93, stem:"芮氏地震規模 6.3 與震度 5 級，哪一個數值在同一次地震中各測站都一樣？", choices:{A:"震度",B:"規模",C:"皆相同",D:"皆不同"}, answer:"B"},
+  {id:94, stem:"金星的大氣因為有大量何種氣體，使其表面有高於其他行星的溫度：", choices:{A:"氧氣",B:"二氧化碳",C:"臭氧",D:"甲烷"}, answer:"B"},
+  {id:95, stem:"為什麼在地球上永遠是看到月球同一面？", choices:{A:"月球不自轉",B:"月球自轉與公轉週期相同",C:"地球不自轉",D:"太陽遮住"}, answer:"B"},
+  {id:96, stem:"太魯閣的大理岩是由何種岩石經變質而來？", choices:{A:"砂岩",B:"石灰岩",C:"頁岩",D:"玄武岩"}, answer:"B"},
+  {id:97, stem:"地震發生時，人在室內應採取什麼動作？", choices:{A:"趴下、掩護、穩住",B:"衝向電梯",C:"跳窗逃生",D:"打開瓦斯"}, answer:"A"},
+  {id:98, stem:"面對地震災害，應如何具備科學素養？", choices:{A:"查證數據並預防",B:"隨意傳播謠言",C:"忽視警報",D:"躲在床底下發限動"}, answer:"A"},
+  {id:99, stem:"臺灣西部平原主要是由何種作用形成的？", choices:{A:"河流沖積",B:"火山噴發",C:"冰川搬運",D:"海浪侵蝕"}, answer:"A"},
+  {id:100, stem:"一個天文單位 (AU) 是指：", choices:{A:"太陽與地球平均距離",B:"地球與月球距離",C:"太陽與月球距離",D:"光走一年的距離"}, answer:"A"}
+];
+
+/* ===== 工具：Fisher-Yates 洗牌 ===== */
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var tmp=a[i];a[i]=a[j];a[j]=tmp;
+  }
+  return a;
+}
+
+/* ===== 開始測驗 ===== */
+function startQuiz(){
+  var cls=document.getElementById("classInput").value.trim();
+  var seat=document.getElementById("seatInput").value.trim();
+  var name=document.getElementById("nameInput").value.trim();
+  if(!cls||!seat||!name){alert("請完整填寫資料");return;}
+  user={cls:cls,seat:seat,name:name};
+
+  // 隨機抽 50 題
+  selectedQuestions=shuffle(questionBank).slice(0,TOTAL_QUESTIONS);
+  currentIndex=0;
+  currentAnswer=null;
+  score=0;
+  userAnswers=[];
+
+  document.getElementById("pageStart").classList.remove("active");
+  document.getElementById("pageQuiz").classList.add("active");
+  renderQuestion();
+}
+
+/* ===== 顯示目前題目 ===== */
+function renderQuestion(){
+  var q=selectedQuestions[currentIndex];
+  var qNum=currentIndex+1;
+  currentAnswer=null;
+
+  // 進度
+  document.getElementById("progressText").innerText="第 "+qNum+" 題 / 共 "+TOTAL_QUESTIONS+" 題";
+  document.getElementById("progressFill").style.width=((qNum-1)/TOTAL_QUESTIONS*100)+"%";
+
+  // 確定按鈕狀態
+  var btn=document.getElementById("confirmBtn");
+  btn.disabled=true;
+  if(qNum===TOTAL_QUESTIONS){
+    btn.innerText="繳交答案 ✓";
+  } else {
+    btn.innerText="確定，下一題 ➜";
+  }
+
+  var area=document.getElementById("quizArea");
+  area.innerHTML="";
+
+  var card=document.createElement("div");
+  card.className="question-card";
+
+  var stem=document.createElement("div");
+  stem.className="question-stem";
+  stem.innerHTML="<b>第 "+qNum+" 題</b>　"+q.stem;
+  card.appendChild(stem);
+
+  if(q.img){
+    var img=document.createElement("img");
+    img.src=q.img;
+    card.appendChild(img);
+  }
+
+  for(var key in q.choices){
+    (function(letter){
+      var ob=document.createElement("button");
+      ob.className="optBtn";
+      ob.id="opt_"+letter;
+      ob.innerHTML="<b>"+letter+".</b> "+q.choices[letter];
+      ob.onclick=function(){
+        // 清除其他選項高亮
+        for(var k in q.choices){
+          var el=document.getElementById("opt_"+k);
+          if(el) el.classList.remove("selected");
+        }
+        ob.classList.add("selected");
+        currentAnswer=letter;
+        document.getElementById("confirmBtn").disabled=false;
+      };
+      card.appendChild(ob);
+    })(key);
+  }
+
+  area.appendChild(card);
+}
+
+/* ===== 確認作答，進下一題 ===== */
+function confirmAnswer(){
+  if(currentAnswer===null) return;
+  var q=selectedQuestions[currentIndex];
+  userAnswers.push({q:q, userAns:currentAnswer});
+  if(currentAnswer===q.answer) score+=POINT;
+  currentIndex++;
+  if(currentIndex>=TOTAL_QUESTIONS){
+    showCertificate();
+  } else {
+    renderQuestion();
+    window.scrollTo(0,0);
+  }
+}
+
+/* ===== 顯示證書 ===== */
+function showCertificate(){
+  // 漸層背景
+  var gradients=[
+    "linear-gradient(135deg,#ffecd2,#fcb69f)",
+    "linear-gradient(135deg,#a1c4fd,#c2e9fb)",
+    "linear-gradient(135deg,#d4fc79,#96e6a1)",
+    "linear-gradient(135deg,#fbc2eb,#a6c1ee)",
+    "linear-gradient(135deg,#fddb92,#d1fdff)",
+    "linear-gradient(135deg,#e0c3fc,#8ec5fc)",
+    "linear-gradient(135deg,#f9f586,#f7d794)"
+  ];
+  var bg=gradients[Math.floor(Math.random()*gradients.length)];
+  document.getElementById("certBox").style.background=bg;
+
+  var today=new Date();
+  var dateStr=today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate();
+
+  document.getElementById("certClass").innerText=user.cls;
+  document.getElementById("certName").innerText=user.name;
+  document.getElementById("certSeat").innerText=user.seat;
+  document.getElementById("certScore").innerText=score+" 分 / 100 分";
+  document.getElementById("certDate").innerText=dateStr;
+
+  // 星星與訊息
+  var stars="",msg="";
+  if(score>=90){stars="⭐⭐⭐⭐⭐";msg="🏆 太厲害了！成績優異，繼續保持！記得截圖登記分數";}
+  else if(score>=70){stars="⭐⭐⭐⭐";msg="🎉 表現不錯，繼續努力喔！記得截圖登記分數";}
+  else if(score>=60){stars="⭐⭐⭐";msg="💪 已經及格，再加把勁！記得截圖登記分數";}
+  else{stars="⭐⭐";msg="😊 這次辛苦了，下次會更好喔！記得截圖登記分數";}
+  document.getElementById("certStars").innerText=stars;
+  document.getElementById("certMessage").innerText=msg;
+
+  document.getElementById("pageQuiz").classList.remove("active");
+  document.getElementById("pageCertificate").classList.add("active");
+  window.scrollTo(0,0);
+
+  // 加入浮動可愛圖形
+  addFloatingShapes();
+
+  // 啟動煙火
+  startFireworks();
+}
+
+/* ===== 浮動可愛裝飾 ===== */
+function addFloatingShapes(){
+  var box=document.getElementById("certBox");
+  // 移除舊的
+  var old=box.querySelectorAll(".floatShape");
+  old.forEach(function(el){el.remove();});
+
+  var emojis=["🌟","⭐","✨","🎉","🎊","🌈","🦋","🌸","🌺","💫","🎈","🥳",
+               "🌙","☁️","❄️","🍀","🌻","🐠","🌊","🪐","🔭","⚡","🎵","🎶"];
+  var count=16;
+  for(var i=0;i<count;i++){
+    var el=document.createElement("span");
+    el.className="floatShape";
+    el.innerText=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=Math.random()*90+"%";
+    el.style.top=Math.random()*90+"%";
+    el.style.fontSize=(22+Math.random()*22)+"px";
+    el.style.animationDuration=(2+Math.random()*3)+"s";
+    el.style.animationDelay=(-Math.random()*3)+"s";
+    el.style.opacity=(0.4+Math.random()*0.5);
+    box.appendChild(el);
+  }
+}
+
+/* ===== 煙火系統 ===== */
+var fwCanvas, fwCtx, fwParticles=[], fwRockets=[], fwRunning=false, fwTimer;
+
+function startFireworks(){
+  fwCanvas=document.getElementById("fireworksCanvas");
+  fwCtx=fwCanvas.getContext("2d");
+  fwParticles=[];fwRockets=[];fwRunning=true;
+
+  function resize(){
+    fwCanvas.width=window.innerWidth;
+    fwCanvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize",resize);
+
+  // 每隔一段時間發射一枚火箭
+  function launchRocket(){
+    if(!fwRunning) return;
+    var x=fwCanvas.width*(0.2+Math.random()*0.6);
+    var targetY=fwCanvas.height*(0.1+Math.random()*0.4);
+    fwRockets.push({
+      x:x, y:fwCanvas.height+10,
+      targetY:targetY,
+      speed:fwCanvas.height*0.015,
+      color:randomColor()
+    });
+  }
+  // 初始連發
+  for(var i=0;i<4;i++){
+    setTimeout(launchRocket, i*300);
+  }
+  // 之後每 800ms 補一枚
+  fwTimer=setInterval(launchRocket,800);
+  // 10 秒後停止發射
+  setTimeout(function(){
+    clearInterval(fwTimer);
+    fwRunning=false;
+  },10000);
+
+  requestAnimationFrame(fwLoop);
+}
+
+function randomColor(){
+  var palette=["#ff6b6b","#ffd93d","#6bcb77","#4d96ff","#ff922b",
+               "#da77ff","#ff6ec7","#74c0fc","#a9e34b","#ffec99"];
+  return palette[Math.floor(Math.random()*palette.length)];
+}
+
+function explode(x,y,color){
+  var count=80+Math.floor(Math.random()*60);
+  for(var i=0;i<count;i++){
+    var angle=Math.random()*Math.PI*2;
+    var speed=1+Math.random()*5;
+    fwParticles.push({
+      x:x,y:y,
+      vx:Math.cos(angle)*speed,
+      vy:Math.sin(angle)*speed,
+      alpha:1,
+      color:color,
+      size:2+Math.random()*3,
+      decay:0.012+Math.random()*0.012,
+      gravity:0.08
+    });
+  }
+  // 小星點
+  for(var j=0;j<20;j++){
+    var ang=Math.random()*Math.PI*2;
+    var spd=3+Math.random()*8;
+    fwParticles.push({
+      x:x,y:y,
+      vx:Math.cos(ang)*spd,
+      vy:Math.sin(ang)*spd,
+      alpha:1,
+      color:"#fff",
+      size:1.5,
+      decay:0.018+Math.random()*0.01,
+      gravity:0.05
+    });
+  }
+}
+
+function fwLoop(){
+  fwCtx.fillStyle="rgba(15,21,53,0.2)";
+  fwCtx.fillRect(0,0,fwCanvas.width,fwCanvas.height);
+
+  // 火箭
+  for(var i=fwRockets.length-1;i>=0;i--){
+    var r=fwRockets[i];
+    r.y-=r.speed;
+    // 尾跡
+    fwCtx.beginPath();
+    fwCtx.arc(r.x,r.y,3,0,Math.PI*2);
+    fwCtx.fillStyle=r.color;
+    fwCtx.fill();
+    // 到達目標就爆炸
+    if(r.y<=r.targetY){
+      explode(r.x,r.y,r.color);
+      fwRockets.splice(i,1);
+    }
+  }
+
+  // 粒子
+  for(var j=fwParticles.length-1;j>=0;j--){
+    var p=fwParticles[j];
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.vy+=p.gravity;
+    p.vx*=0.97;
+    p.alpha-=p.decay;
+    if(p.alpha<=0){fwParticles.splice(j,1);continue;}
+    fwCtx.globalAlpha=p.alpha;
+    fwCtx.beginPath();
+    fwCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    fwCtx.fillStyle=p.color;
+    fwCtx.fill();
+  }
+  fwCtx.globalAlpha=1;
+
+  if(fwRockets.length>0||fwParticles.length>0||fwRunning){
+    requestAnimationFrame(fwLoop);
+  } else {
+    // 清空畫布
+    fwCtx.clearRect(0,0,fwCanvas.width,fwCanvas.height);
+  }
+}
+
+/* ===== 答題記錄 ===== */
+var userAnswers = [];
+
+/* ===== 進入回顧頁 ===== */
+var currentFilter = 'all';
+
+function goReview(){
+  document.getElementById("pageCertificate").classList.remove("active");
+  document.getElementById("pageReview").classList.add("active");
+  window.scrollTo(0,0);
+  var correct = userAnswers.filter(function(r){ return r.userAns === r.q.answer; }).length;
+  var wrong = userAnswers.length - correct;
+  document.getElementById("reviewSummary").innerText =
+    "答對 " + correct + " 題 ／ 答錯 " + wrong + " 題";
+  currentFilter = 'all';
+  highlightFilter('fAll');
+  renderReview();
+}
+
+function filterReview(type){
+  currentFilter = type;
+  var map = {all:'fAll', wrong:'fWrong', correct:'fCorrect'};
+  highlightFilter(map[type]);
+  renderReview();
+}
+
+function highlightFilter(activeId){
+  var ids = ['fAll','fWrong','fCorrect'];
+  var colors = {fAll:'#4d96ff', fWrong:'#ff6b6b', fCorrect:'#6bcb77'};
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    if(id === activeId){
+      el.style.background = colors[id];
+      el.style.color = 'white';
+    } else {
+      el.style.background = 'transparent';
+      el.style.color = colors[id];
+    }
+  });
+}
+
+function renderReview(){
+  var area = document.getElementById("reviewArea");
+  area.innerHTML = "";
+
+  var list = userAnswers.filter(function(r){
+    if(currentFilter === 'correct') return r.userAns === r.q.answer;
+    if(currentFilter === 'wrong')   return r.userAns !== r.q.answer;
+    return true;
+  });
+
+  if(list.length === 0){
+    area.innerHTML = '<p style="text-align:center;color:#aab;font-size:18px;margin-top:40px;">沒有符合條件的題目 🎉</p>';
+    return;
+  }
+
+  list.forEach(function(r, idx){
+    var q = r.q;
+    var isCorrect = (r.userAns === q.answer);
+    var card = document.createElement("div");
+    card.style.cssText =
+      "background:" + (isCorrect ? "#0d2e1a" : "#2e0f0f") + ";" +
+      "border:2px solid " + (isCorrect ? "#6bcb77" : "#ff6b6b") + ";" +
+      "border-radius:14px;padding:18px;margin-bottom:18px;";
+
+    // 題號 + 對錯標記
+    var header = document.createElement("div");
+    header.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:10px;";
+    header.innerHTML =
+      '<span style="font-size:15px;color:#aab;">第 ' + (userAnswers.indexOf(r)+1) + ' 題</span>' +
+      '<span style="font-size:22px;">' + (isCorrect ? '✅' : '❌') + '</span>';
+    card.appendChild(header);
+
+    // 題目
+    var stem = document.createElement("div");
+    stem.style.cssText = "font-size:18px;line-height:1.6;margin-bottom:12px;color:#eee;";
+    stem.innerText = q.stem;
+    card.appendChild(stem);
+
+    // 圖片
+    if(q.img){
+      var img = document.createElement("img");
+      img.src = q.img;
+      img.style.cssText = "max-width:100%;border-radius:8px;margin-bottom:10px;";
+      card.appendChild(img);
+    }
+
+    // 選項列表
+    for(var key in q.choices){
+      var opt = document.createElement("div");
+      var isAnswer = (key === q.answer);
+      var isUser   = (key === r.userAns);
+
+      var bg = "transparent", border = "#334", textColor = "#ccc", prefix = "";
+      if(isAnswer){
+        bg = "#1a4a1f"; border = "#6bcb77"; textColor = "#afffb8"; prefix = "✅ ";
+      }
+      if(isUser && !isAnswer){
+        bg = "#4a1a1a"; border = "#ff6b6b"; textColor = "#ffb3b3"; prefix = "❌ ";
+      }
+      if(isUser && isAnswer){ prefix = "✅ "; }
+
+      opt.style.cssText =
+        "padding:10px 14px;border-radius:8px;border:2px solid " + border + ";" +
+        "background:" + bg + ";color:" + textColor + ";" +
+        "font-size:16px;margin:5px 0;";
+      opt.innerHTML = "<b>" + key + ".</b> " + q.choices[key];
+
+      // 標籤
+      if(isAnswer || (isUser && !isAnswer)){
+        var tag = document.createElement("span");
+        tag.style.cssText =
+          "font-size:13px;margin-left:8px;padding:2px 8px;border-radius:10px;" +
+          "background:" + (isAnswer ? "#6bcb77" : "#ff6b6b") + ";color:white;";
+        tag.innerText = isAnswer ? "正確答案" : "你的作答";
+        opt.appendChild(tag);
+      }
+
+      card.appendChild(opt);
+    }
+
+    area.appendChild(card);
+  });
+}
+
+/* ===== 結束 ===== */
+function goEnd(){
+  // 回到起始頁，重置狀態
+  var pages = ['pageQuiz','pageCertificate','pageReview'];
+  pages.forEach(function(id){
+    document.getElementById(id).classList.remove("active");
+  });
+  document.getElementById("pageStart").classList.add("active");
+  document.getElementById("classInput").value="";
+  document.getElementById("seatInput").value="";
+  document.getElementById("nameInput").value="";
+  userAnswers=[];
+  score=0;
+  currentIndex=0;
+  currentAnswer=null;
+  selectedQuestions=[];
+  window.scrollTo(0,0);
+}
+
+</script>
+</body>
+</html>
